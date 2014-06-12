@@ -1,40 +1,292 @@
-<!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width">
+<!--
+To change this template use Tools | Templates.
+-->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+	
+	<style>
+	
+	.body {
+		font: 8px sans-serif;
+	}
+	
+	.axisLabel {
+		font: 12px sans-serif;
+		text-decoration: underline;
+	}
+	
+	.chartTitle {
+		font-weight: bold;
+		text-anchor: middle;
+		font-size: 18px;
+	}
+		
+	.axis path,
+		
+	.axis line {
+		fill:none;
+		stroke: #000;
+		shape-rendering: crispEdges;
+	}
+	
+	.y.axis path {
+		display: none;
+	}
+		
+	}
+	.rect.active {
+		fill:black;
+	}
+	
+	text {
+		fill: black;
+		font: 10px sans-serif;
+		text-anchor: middle;
+	}
+	
+	.label {
+		text-anchor: start;
+		font: 8px sans-serif;
+	}
+	
+	.shadow {
+		stroke: white;
+		stroke-width: 3px;
+		opacity: 1;
+	}
+	
+	div.tooltip {
+		position: absolute;
+		text-align: center;
+		padding: 5px;
+		font: 14px sans-serif;
+		background: lightsteelblue;
+		border: 0px;
+		border-radius: 8px;
+		pointer-events: none;
+	}
+	
+/*	.legend {
+		stroke: black;
+	} */
+	</style>
+	
+    <title></title>
+</head>
+<body>
+	<p class="axisLabel" style="margin-left: 140px">Slide to zoom:</p>
+	
+	<div id="slider-range" style="width: 475px; margin-left: 140px;"></div>
+	<script src="d3.js"  charset="utf-8"></script>
+	
+	<script>
+	
+	var margin = {top: 60, right: 25, bottom: 30, left: 140},
+			width = 650 - margin.left - margin.right,
+			height = 500 - margin.top - margin.bottom;
+	
+	var y0 = d3.scale.ordinal()
+		.rangeRoundBands([0, height], 0.1);
+	
+	var y1 = d3.scale.ordinal();
+	
+	var x = d3.scale.linear()
+		.range([0, width]);
+	
+	var color = d3.scale.ordinal()
+		.range(["maroon","steelblue"]);
+		
+	var xAxis = d3.svg.axis()
+		.scale(x)
+		.orient("top")
+		.tickFormat(d3.format("0.2"));
+	
+	var yAxis = d3.svg.axis()
+		.scale(y0) 
+		.orient("left");
 
-        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+	var svg = d3.select("body").append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height+ margin.top + margin.bottom)
+	  .append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //svg starts
+		
+	d3.csv("agencies4.csv", function(error, data) {
+		var ageNames = d3.keys(data[0]).filter(function(key) { return key !== "Name"; }); //agency name keys
 
-        <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">
-        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
-    </head>
-    <body>
-        <!--[if lt IE 7]>
-            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
-        <![endif]-->
+	data.forEach(function(d, i) {
+		 var makePercent = d3.format("0.1%");
+		 d.tickets = ageNames.map(function(name) { return {name: name, value: +d[name], percentage: makePercent(d.Dismissed/d.Total) }}) //array with name/value pairs
+	 });
+		
+	y0.domain(data.map(function(d) {return d.Name; })); //for axis labels
+	y1.domain(ageNames).rangeRoundBands([0, y0.rangeBand()]);
+	x.domain([0, d3.max(data, function(d) { return d3.max(d.tickets, function(d) {return d.value; }); })]);
+		
+	svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0, 0)")
+		.call(xAxis);
+	
+	//yaxis ticks
+	svg.append("g")
+		.attr("class", "y axis")
+		.call(yAxis) 
+	  .append("text") //y axis label
+		.attr("class", "axisLabel")
+		.attr("y", 5)
+		.attr("x", -10)
+		.attr("dy", ".51em")
+		.style("text-anchor", "end")
+		.text("Traffic Court")
+	  
+	svg.append("text") // title
+		.attr("class", "chartTitle")
+		.attr("x", (width / 2))
+		.attr("y", 0 - (margin.top / 2))
+		.text("Santa Clara County Traffic Tickets 2013");
+	
+	svg.append("text") //x axis label
+		.attr("class", "axisLabel")
+		.attr("x", 15)
+		.attr("y", - (margin.top/3))
+		.attr("text-anchor", "end")
+		.text("Tickets");
+		
+	var bar = svg.selectAll(".name")
+		.data(data)
+	  .enter().append("g")
+		.attr("class", "g")
+		.attr("transform", function(d) { return "translate(0," + y0(d.Name) + ")"; });
+	
+	//tooltip declaration
+	var div = d3.select("body").append("div")
+		.attr("class", "tooltip")
+		.style("opacity", 0);
+		
+	//binding data to rects	
+	bar.selectAll("rect")
+		.data(function(d) { 
+			return d.tickets; })
+		  .enter().append("rect")
+		.attr("class", "rect")
+		.attr("width", function(d) {return x(d.value);})
+		.attr("y", function(d) {return y1(d.name); })
+		.attr("height", y1.rangeBand())
+		.style("fill", function(d) { return color(d.name); })
+	//mouseover effects
+		.on("mouseover", function(d, i){
+			d3.select(this)
+				.style("fill", "gray")
+			div.transition()
+				.duration(200)
+				.style("opacity", 0.9)
+			div.html("Percentage Dismissed: " + d.percentage)
+				.style("left", (d3.event.pageX) + 10 + "px")
+				.style("top", (d3.event.pageY) - 1.5 * y1.rangeBand() + "px")
+			;})
+		.on("mouseout", function () {
+			div.transition()
+				.duration(250)
+				.style("opacity", 0);
+			d3.select(this)
+				.style("fill", function (d) {return color(d.name); })
+		});
+		
+	//bar labels
+	bar.selectAll("text")
+		  .data(function(d) { return d.tickets; })
+		.enter().append("text")
+			.attr("class", "label")
+			.attr("x", function (d) { return x(d.value) + 1; })
+			.attr("y", function(d) {return y1(d.name) + y1.rangeBand()/2 - 5;})
+			.attr("dy", ".75em")
+			.text(function(d) {return "-" + d.value; });
+	
+	//begin legend code//	
+		var legend = svg.selectAll(".legend")
+			.data(ageNames.slice().reverse())
+		  .enter().append("g")
+			.attr("class", "legend")
+			.attr("transform", function(d, i) { return "translate (0," + i * 20 + ")"; });
+		//legend squares
+		legend.append("rect")
+			.attr("x", width - 18)
+			.attr("y", 1 * y1.rangeBand())
+			.attr("width", 18)
+			.attr("height", 18)
+			.attr("stroke-width", 2)
+			.attr("stroke", "white")
+			.style("fill", color);
+	
+		
+			//drop shadow
+		legend.append("text")
+			.attr("class", "shadow")
+			.attr("x", width -24)
+			.attr("y", 1 * y1.rangeBand() + 10)
+			.attr("dy", "0.35em")
+			.style("text-anchor", "end")
+			.text(function(d) {return d;});
+		
+		//legend text
+		legend.append("text")
+			.attr("x", width -24)
+			.attr("class", "legend")
+			.attr("y", 1 * y1.rangeBand() + 10)
+			.attr("dy", "0.35em")
+			.style("text-anchor", "end")
+			.text(function(d) {return d;});
+		
+		svg.append("text")
+			.attr("y", height)
+			.attr("x", width)
+			.attr("dy", "0.35em")
+			.style("text-anchor", "end")
+			.text("Scott Pham / NBC Bay Area")
+			.style("fill", "gray")
+			.style("stroke-width", 1);
+	//end legend code
+	
+	function zoom(begin, end) {
+		x.domain( [begin, end-1] );
+		
+		svg.transition().duration(550)
+			.select(".x.axis").call(xAxis);
+		svg.transition().duration(550)
+			.selectAll(".rect")
+		.attr("width", function(d) {return x(d.value)});
+		
+		svg.transition().duration(550)
+			.selectAll(".label")
+			.attr("x", function(d) {return x(d.value)});
+	}
+	
+	$(function() {
+		$("#slider-range").slider({
+			range: "min",
+			min: 1,
+			max: d3.max(data, function(d) { return d3.max(d.tickets, function(d) {return d.value; }); }),
+			value: 1900,
+			slide: function( event, ui ) {
+				var end = ui.value;
+				var begin = d3.min([ui.value, 0]);
+				//console.log("begin:", begin, "end:", end);
+				
+				zoom(begin, end);
+			}
+		});
+	});
+		
+		});
+		
+	</script>
+	
 
-        <!-- Add your site or application content here -->
-        <p>Hello world! This is HTML5 Boilerplate.</p>
-
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.0.min.js"><\/script>')</script>
-        <script src="js/plugins.js"></script>
-        <script src="js/main.js"></script>
-
-        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
-        <script>
-            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-            s.parentNode.insertBefore(g,s)}(document,'script'));
-        </script>
-    </body>
+</body>
 </html>
