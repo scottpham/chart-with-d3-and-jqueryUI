@@ -116,7 +116,7 @@ To change this template use Tools | Templates.
 	  .append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //svg starts
 		
-	d3.csv("agencies4.csv", function(error, data) {
+	d3.csv("agencies.csv", function(error, data) {
 		var ageNames = d3.keys(data[0]).filter(function(key) { return key !== "Name"; }); //agency name keys
 
 	data.forEach(function(d, i) {
