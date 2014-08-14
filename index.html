@@ -27,7 +27,6 @@ To change this template use Tools | Templates.
 	}
 		
 	.axis path,
-		
 	.axis line {
 		fill:none;
 		stroke: #000;
@@ -38,7 +37,6 @@ To change this template use Tools | Templates.
 		display: none;
 	}
 		
-	}
 	.rect.active {
 		fill:black;
 	}
@@ -71,12 +69,8 @@ To change this template use Tools | Templates.
 		pointer-events: none;
 	}
 	
-/*	.legend {
-		stroke: black;
-	} */
 	</style>
 	
-    <title></title>
 </head>
 <body>
 	<p class="axisLabel" style="margin-left: 140px">Slide to zoom:</p>
@@ -87,8 +81,8 @@ To change this template use Tools | Templates.
 	<script>
 	
 	var margin = {top: 60, right: 25, bottom: 30, left: 140},
-			width = 650 - margin.left - margin.right,
-			height = 500 - margin.top - margin.bottom;
+		width = 650 - margin.left - margin.right,
+		height = 500 - margin.top - margin.bottom;
 	
 	var y0 = d3.scale.ordinal()
 		.rangeRoundBands([0, height], 0.1);
@@ -114,8 +108,9 @@ To change this template use Tools | Templates.
 		.attr("width", width + margin.left + margin.right)
 		.attr("height", height+ margin.top + margin.bottom)
 	  .append("g")
-		.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //svg starts
-		
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); 
+
+	//svg starts
 	d3.csv("agencies.csv", function(error, data) {
 		var ageNames = d3.keys(data[0]).filter(function(key) { return key !== "Name"; }); //agency name keys
 
@@ -171,16 +166,14 @@ To change this template use Tools | Templates.
 		
 	//binding data to rects	
 	bar.selectAll("rect")
-		.data(function(d) { 
-			return d.tickets; })
+		.data(function(d) { return d.tickets; })
 		  .enter().append("rect")
 		.attr("class", "rect")
 		.attr("width", function(d) {return x(d.value);})
 		.attr("y", function(d) {return y1(d.name); })
 		.attr("height", y1.rangeBand())
 		.style("fill", function(d) { return color(d.name); })
-	//mouseover effects
-		.on("mouseover", function(d, i){
+		.on("mouseover", function(d, i){ 	//mouseover effects
 			d3.select(this)
 				.style("fill", "gray")
 			div.transition()
@@ -209,50 +202,52 @@ To change this template use Tools | Templates.
 			.text(function(d) {return "-" + d.value; });
 	
 	//begin legend code//	
-		var legend = svg.selectAll(".legend")
-			.data(ageNames.slice().reverse())
-		  .enter().append("g")
-			.attr("class", "legend")
-			.attr("transform", function(d, i) { return "translate (0," + i * 20 + ")"; });
-		//legend squares
-		legend.append("rect")
-			.attr("x", width - 18)
-			.attr("y", 1 * y1.rangeBand())
-			.attr("width", 18)
-			.attr("height", 18)
-			.attr("stroke-width", 2)
-			.attr("stroke", "white")
-			.style("fill", color);
+	var legend = svg.selectAll(".legend")
+		.data(ageNames.slice().reverse())
+	  .enter().append("g")
+		.attr("class", "legend")
+		.attr("transform", function(d, i) { return "translate (0," + i * 20 + ")"; });
+
+	//legend squares
+	legend.append("rect")
+		.attr("x", width - 18)
+		.attr("y", 1 * y1.rangeBand())
+		.attr("width", 18)
+		.attr("height", 18)
+		.attr("stroke-width", 2)
+		.attr("stroke", "white")
+		.style("fill", color);
 	
-		
-			//drop shadow
-		legend.append("text")
-			.attr("class", "shadow")
-			.attr("x", width -24)
-			.attr("y", 1 * y1.rangeBand() + 10)
-			.attr("dy", "0.35em")
-			.style("text-anchor", "end")
-			.text(function(d) {return d;});
-		
-		//legend text
-		legend.append("text")
-			.attr("x", width -24)
-			.attr("class", "legend")
-			.attr("y", 1 * y1.rangeBand() + 10)
-			.attr("dy", "0.35em")
-			.style("text-anchor", "end")
-			.text(function(d) {return d;});
-		
-		svg.append("text")
-			.attr("y", height)
-			.attr("x", width)
-			.attr("dy", "0.35em")
-			.style("text-anchor", "end")
-			.text("Scott Pham / NBC Bay Area")
-			.style("fill", "gray")
-			.style("stroke-width", 1);
+	//drop shadow
+	legend.append("text")
+		.attr("class", "shadow")
+		.attr("x", width -24)
+		.attr("y", 1 * y1.rangeBand() + 10)
+		.attr("dy", "0.35em")
+		.style("text-anchor", "end")
+		.text(function(d) {return d;});
+	
+	//legend text
+	legend.append("text")
+		.attr("x", width -24)
+		.attr("class", "legend")
+		.attr("y", 1 * y1.rangeBand() + 10)
+		.attr("dy", "0.35em")
+		.style("text-anchor", "end")
+		.text(function(d) {return d;});
+	
+	svg.append("text")
+		.attr("y", height)
+		.attr("x", width)
+		.attr("dy", "0.35em")
+		.style("text-anchor", "end")
+		.text("Scott Pham / NBC Bay Area")
+		.style("fill", "gray")
+		.style("stroke-width", 1);
 	//end legend code
 	
+
+	//zoom slider
 	function zoom(begin, end) {
 		x.domain( [begin, end-1] );
 		
@@ -275,15 +270,13 @@ To change this template use Tools | Templates.
 			value: 1900,
 			slide: function( event, ui ) {
 				var end = ui.value;
-				var begin = d3.min([ui.value, 0]);
-				//console.log("begin:", begin, "end:", end);
-				
+				var begin = d3.min([ui.value, 0]);		
 				zoom(begin, end);
 			}
 		});
 	});
 		
-		});
+});
 		
 	</script>
 	
